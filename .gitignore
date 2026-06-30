@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### CI/CD ###
+actions-runner/
+target/
