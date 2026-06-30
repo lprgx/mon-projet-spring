@@ -32,19 +32,27 @@ jobs:
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
-      - name: Debug Maven settings
+      - name: Write Maven settings.xml
+        if: github.ref == 'refs/heads/main'
         run: |
-          echo "HOME is: $HOME"
-          whoami
-          echo "NEXUS_USER is: $NEXUS_USER"
-          cat ~/.m2/settings.xml || echo "FICHIER INTROUVABLE"
-        env:
-          NEXUS_USER: ${{ secrets.NEXUS_USER }}
-          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml << 'EOF'
+          <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+            <servers>
+              <server>
+                <id>nexus</id>
+                <username>${env.NEXUS_USER}</username>
+                <password>${env.NEXUS_PASSWORD}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
 
       - name: Publish to Nexus
         if: github.ref == 'refs/heads/main'
-        run: mvn deploy -DskipTests -X
+        run: mvn deploy -DskipTests
         env:
           NEXUS_USER: ${{ secrets.NEXUS_USER }}
           NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
