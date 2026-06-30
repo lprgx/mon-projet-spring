@@ -32,9 +32,19 @@ jobs:
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
+      - name: Debug Maven settings
+        run: |
+          echo "HOME is: $HOME"
+          whoami
+          echo "NEXUS_USER is: $NEXUS_USER"
+          cat ~/.m2/settings.xml || echo "FICHIER INTROUVABLE"
+        env:
+          NEXUS_USER: ${{ secrets.NEXUS_USER }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+
       - name: Publish to Nexus
         if: github.ref == 'refs/heads/main'
-        run: mvn deploy -DskipTests
+        run: mvn deploy -DskipTests -X
         env:
           NEXUS_USER: ${{ secrets.NEXUS_USER }}
           NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
@@ -54,12 +64,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Debug Maven settings
-        run: |
-          echo "HOME is: $HOME"
-          whoami
-          cat ~/.m2/settings.xml || echo "FICHIER INTROUVABLE"
 
       - name: Build & Push Docker image
         run: |
